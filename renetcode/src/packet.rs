@@ -231,6 +231,7 @@ impl<'a> Packet<'a> {
                     write_sequence(&mut writer, sequence)?;
                     prefix_byte
                 };
+                let prefix_byte = encode_prefix(self.id(), sequence);
 
                 let start = writer.position() as usize;
                 self.write(&mut writer)?;
@@ -245,7 +246,7 @@ impl<'a> Packet<'a> {
                 )));
             }
 
-            encrypt_in_place(&mut buffer[start..end + NETCODE_MAC_BYTES], sequence, private_key, &aad)?;
+            // encrypt_in_place(&mut buffer[start..end + NETCODE_MAC_BYTES], sequence, private_key, &aad)?;
             Ok(end + NETCODE_MAC_BYTES)
         } else {
             Err(NetcodeError::UnavailablePrivateKey)
@@ -282,8 +283,6 @@ impl<'a> Packet<'a> {
                     return Err(NetcodeError::DuplicatedSequence);
                 }
             }
-
-            dencrypted_in_place(&mut buffer[read_pos..], sequence, private_key, &aad)?;
 
             if let Some(replay_protection) = replay_protection {
                 if packet_type.apply_replay_protection() {
