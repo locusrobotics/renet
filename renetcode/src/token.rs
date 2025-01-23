@@ -7,11 +7,9 @@ use std::{
 };
 
 use crate::{
-    crypto::{dencrypted_in_place_xnonce, encrypt_in_place_xnonce, generate_random_bytes},
-    serialize::*,
-    NetcodeError, NETCODE_ADDITIONAL_DATA_SIZE, NETCODE_ADDRESS_IPV4, NETCODE_ADDRESS_IPV6, NETCODE_ADDRESS_NONE,
-    NETCODE_CONNECT_TOKEN_PRIVATE_BYTES, NETCODE_CONNECT_TOKEN_XNONCE_BYTES, NETCODE_KEY_BYTES, NETCODE_USER_DATA_BYTES,
-    NETCODE_VERSION_INFO,
+    crypto::generate_random_bytes, serialize::*, NetcodeError, NETCODE_ADDITIONAL_DATA_SIZE, NETCODE_ADDRESS_IPV4, NETCODE_ADDRESS_IPV6,
+    NETCODE_ADDRESS_NONE, NETCODE_CONNECT_TOKEN_PRIVATE_BYTES, NETCODE_CONNECT_TOKEN_XNONCE_BYTES, NETCODE_KEY_BYTES,
+    NETCODE_USER_DATA_BYTES, NETCODE_VERSION_INFO,
 };
 use chacha20poly1305::aead::Error as CryptoError;
 
@@ -250,8 +248,6 @@ impl PrivateConnectToken {
         let aad = get_additional_data(protocol_id, expire_timestamp);
         self.write(&mut Cursor::new(&mut buffer[..]))?;
 
-        encrypt_in_place_xnonce(buffer, xnonce, private_key, &aad)?;
-
         Ok(())
     }
 
@@ -266,8 +262,6 @@ impl PrivateConnectToken {
 
         let mut temp_buffer = [0u8; NETCODE_CONNECT_TOKEN_PRIVATE_BYTES];
         temp_buffer.copy_from_slice(buffer);
-
-        dencrypted_in_place_xnonce(&mut temp_buffer, xnonce, private_key, &aad)?;
 
         let src = &mut io::Cursor::new(&temp_buffer[..]);
         Ok(Self::read(src)?)

@@ -1,6 +1,5 @@
 use std::io::{self, Cursor, Write};
 
-use crate::crypto::{dencrypted_in_place, encrypt_in_place};
 use crate::replay_protection::ReplayProtection;
 use crate::token::ConnectToken;
 use crate::{
@@ -114,7 +113,6 @@ impl<'a> Packet<'a> {
         let token = ChallengeToken::new(client_id, user_data);
         let mut buffer = [0u8; NETCODE_CHALLENGE_TOKEN_BYTES];
         token.write(&mut Cursor::new(&mut buffer[..]))?;
-        encrypt_in_place(&mut buffer, challenge_sequence, challenge_key, b"")?;
 
         Ok(Packet::Challenge {
             token_sequence: challenge_sequence,
@@ -327,7 +325,6 @@ impl ChallengeToken {
     ) -> Result<ChallengeToken, NetcodeError> {
         let mut decoded = [0u8; NETCODE_CHALLENGE_TOKEN_BYTES];
         decoded.copy_from_slice(&token_data);
-        dencrypted_in_place(&mut decoded, token_sequence, challenge_key, b"")?;
 
         Ok(ChallengeToken::read(&mut Cursor::new(&mut decoded))?)
     }
