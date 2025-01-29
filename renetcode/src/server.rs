@@ -460,7 +460,13 @@ impl NetcodeServer {
                     xnonce,
                     version_info,
                 } => {
-                    return self.handle_connection_request(addr, version_info, protocol_id, expire_timestamp, xnonce, data);
+                    return match self.handle_connection_request(addr, version_info, protocol_id, expire_timestamp, xnonce, data) {
+                        Err(error) => {
+                            log::debug!("Pending client connection request failed: {error}");
+                            Err(error)
+                        }
+                        result => result,
+                    }
                 }
                 Packet::Response {
                     token_data,
@@ -525,7 +531,14 @@ impl NetcodeServer {
                 expire_timestamp,
                 xnonce,
                 version_info,
-            } => self.handle_connection_request(addr, version_info, protocol_id, expire_timestamp, xnonce, data),
+            } => match self.handle_connection_request(addr, version_info, protocol_id, expire_timestamp, xnonce, data) {
+                Err(error) => {
+                    log::debug!("New Client connection request failed: {error}");
+                    Err(error)
+                }
+                result => result,
+            },
+
             _ => unreachable!("Decoding packet without key can only return ConnectionRequest packets"),
         }
     }
