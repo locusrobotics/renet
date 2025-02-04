@@ -111,6 +111,7 @@ impl<'a> Packet<'a> {
         challenge_sequence: u64,
         challenge_key: &[u8; NETCODE_KEY_BYTES],
     ) -> Result<Self, NetcodeError> {
+        log::trace!("Encode challenge: sequence: {challenge_sequence} key: {:x?}", challenge_key);
         let token = ChallengeToken::new(client_id, user_data);
         let mut buffer = [0u8; NETCODE_CHALLENGE_TOKEN_BYTES];
         token.write(&mut Cursor::new(&mut buffer[..]))?;
@@ -326,6 +327,7 @@ impl ChallengeToken {
         token_sequence: u64,
         challenge_key: &[u8; NETCODE_KEY_BYTES],
     ) -> Result<ChallengeToken, NetcodeError> {
+        log::trace!("Decode challenge: sequence: {token_sequence} key: {:x?}", challenge_key);
         let mut decoded = [0u8; NETCODE_CHALLENGE_TOKEN_BYTES];
         decoded.copy_from_slice(&token_data);
         dencrypted_in_place(&mut decoded, token_sequence, challenge_key, b"")?;
