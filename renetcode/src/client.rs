@@ -203,7 +203,11 @@ impl NetcodeClient {
                 return None;
             }
         };
-        log::trace!("Received packet from server: {:?}", packet.packet_type());
+        log::trace!(
+            "Received packet from server: {:?} while in state: {:?}",
+            packet.packet_type(),
+            self.state
+        );
 
         match (packet, &self.state) {
             (Packet::ConnectionDenied, ClientState::SendingConnectionRequest | ClientState::SendingConnectionResponse) => {
