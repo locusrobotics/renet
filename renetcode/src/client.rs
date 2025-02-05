@@ -339,7 +339,9 @@ impl NetcodeClient {
 
     fn generate_packet(&mut self) -> Option<(&mut [u8], SocketAddr)> {
         if let Some(last_packet_send_time) = self.last_packet_send_time {
-            if self.current_time - last_packet_send_time < self.send_rate {
+            let delta = self.current_time - last_packet_send_time;
+            if delta < self.send_rate {
+                log::trace!("Not sending packets. Last packet was too recent: {delta:?}");
                 return None;
             }
         }
@@ -362,6 +364,8 @@ impl NetcodeClient {
             },
             _ => return None,
         };
+
+        log::trace!("Sending packet: {packet:?}");
 
         let result = packet.encode(
             &mut self.out,
